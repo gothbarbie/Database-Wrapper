@@ -1,21 +1,12 @@
 <?php
 
-namespace Gothbarbie;
+namespace Gothbarbie\Database;
 
 class Database {
     private static $_instance = null;
     private static $_credentials;
 
     private $_connection;
-
-    private $_action = '';
-    private $_table = '';
-    private $_where = '';
-    private $_limit = '';
-
-    private $_sql;
-    private $_values = [];
-
     private $_query;
 
     private $_queryFailed = false;
@@ -52,22 +43,30 @@ class Database {
         $this->_connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
     }
 
+   /**
+    *  whereIsValid()
+    *  Validates operators in select-query
+    */
     private function whereIsValid($where)
     {
-        $validOperators = ['=', '>', '<', '>=', '<=', '!='];
         if (count($where) === 3)
         {
-            if (in_array($where[1], $validOperators)) {
-                return true;
-            }
+            $validOperators = ['=', '>', '<', '>=', '<=', '!='];
+            return in_array($where[1], $validOperators);
         }
         return false;
     }
 
-    // Basic query
+   /**
+    *  query()
+    *  @param   string  $sql
+    *  @param   array   $params
+    *  @return  $this
+    */
     public function query( $sql, $params = [] )
     {
-    	$this->_queryFailed = false; // Reset
+        // Reset _queryFailed
+        $this->_queryFailed = false;
 
     	if( $this->_query = $this->_connection->prepare($sql) )
         {
@@ -80,25 +79,26 @@ class Database {
     				$x++;
     			}
     		}
+
             // Execute
     		if ( $this->_query->execute() ) {
                 $this->_count = $this->_query->rowCount();
     		} else {
     			$this->_queryFailed = true;
+                $this->_results = $this->_connection->errorInfo();
     		}
     	}
     	return $this;
     }
 
-    // If you run query manually, then it has to be executed manually afterwards
-    public function run()
+   /**
+    *  results()
+    *  Fetches result from last ran query
+    */
+    public function results($fetchStyle = false)
     {
-        $this->query($this->_sql, $this->_values);
-        return $this;
-    }
+        if ($this->_queryFailed) die('Database: Query failed. Could not fetch results.');
 
-    public function results($fetchStyle = 'assoc')
-    {
         /* Read more on fetch styles here:
         http://php.net/manual/en/pdostatement.fetch.php */
         switch ($fetchStyle) {
@@ -118,70 +118,111 @@ class Database {
         return $this->_query->fetchAll($as);
     }
 
+   /**
+    *  count()
+    *  Getter for $this->_count
+    */
     public function count()
     {
         return $this->_count;
     }
 
-    public function action($action, $table)
+   /**
+    *  select()
+    *  Query building helper
+    *  $selector, $table, $whereConditions ([$column, $operator, $value])
+    *
+    */
+    public function select($selector, $table, $whereConditions = false, $limit = false)
     {
-        $this->_action = $action;
-        $this->_table  = ' FROM ' . $table;
-        return $this;
+        if ( $this->whereIsValid($whereConditions) ) {
+            $limitBy = "";
+            if ( is_int($limit) OR is_numeric($limit) ) { $limitBy = "LIMIT {$limit}"; }
+            $where = "{$whereConditions[0]} {$whereConditions[1]} ?";
+            $values[] = $whereConditions[2];
+            $this->query("SELECT {$selector} FROM {$table} WHERE {$where} {$limitBy}", $values);
+        } else {
+            $limitBy = "";
+            if ( is_int($limit) OR is_numeric($limit) ) { $limitBy = "LIMIT {$limit}"; }
+            $this->query("SELECT {$selector} FROM {$table} {$limitBy}");
+        }
+        return $this->results();
     }
 
-    // Select helper
-    public function select($table, $what = '*')
+   /**
+    *    latest()
+    *    Query shortcut
+    *    Get the last row from selected table (by ID)
+    */
+    public function latest($table)
     {
-        $this->_action = 'SELECT ' . $what;
-        $this->_table = ' FROM ' . $table;
-        return $this;
+        return $this->query("SELECT * FROM {$table} WHERE id = (SELECT MAX(id) FROM {$table})", [])->results();
     }
 
-    public function where($where)
+   /**
+    *    insert()
+    *    Query shortcut
+    *    Insert record into table
+    */
+    public function insert($table, $fieldsAndValues)
     {
-        if ($this->whereIsValid($where)) {
-            if (empty($this->_where)) {
-                $this->_where = ' WHERE ' . $where[0] . ' ' . $where[1] . ' ?';
-            } else {
-                $this->_where .= ' AND ' . $where[0] . ' ' . $where[1] . ' ?';
+        $fields            = "";
+        $valuesPlaceholder = "";
+        $values            = [];
+        $i                 = 1;
+        foreach ($fieldsAndValues as $field => $value) {
+            $fields            .= $field;
+            $valuesPlaceholder .= "?";
+            $values[]           = $value;
+            if ($i < count($fieldsAndValues)) {
+                $fields            .= ", ";
+                $valuesPlaceholder .= ", ";
             }
-            $this->_values[] = $where[2];
-            return $this;
+            $i++;
         }
+        $this->query("INSERT INTO {$table} ({$fields}) VALUES ({$valuesPlaceholder})", $values);
+        return !$this->_queryFailed;
     }
 
-    public function orWhere($where)
+   /**
+    *  update()
+    *  Query shortcut
+    *  $table, $fieldsAndValues, $whereConditions ([$column, $operator, $value])
+    *
+    */
+    public function update($table, $fieldsAndValues, $whereConditions = false)
     {
-        if ($this->whereIsValid($where) AND !empty($this->_where)) {
-            $this->_where .= ' OR ' . $where[0] . ' ' . $where[1] . ' ?';
-            $this->_values[] = $where[2];
-            return $this;
+        $set = "";
+        $values = [];
+    	$i = 1;
+
+    	foreach ($fieldsAndValues as $field => $value) {
+    		$set .= $field . " = ?";
+    		if ($i < count($fieldsAndValues)) {
+    			$set .= ", ";
+    		}
+            $values[] = $value;
+    		$i++;
+    	}
+
+        $sql = "UPDATE {$table} SET {$set}";
+
+        if ( $this->whereIsValid($whereConditions) ) {
+            $sql .= " WHERE {$whereConditions[0]} {$whereConditions[1]} {$whereConditions[2]}";
         }
+        $this->query($sql, $values);
+        return !$this->_queryFailed;
     }
 
-    // Adds a limit to the results for the query
-    public function limit($rows)
-    {
-        $this->_limit = ' LIMIT ' . $rows;
-    }
-
-    // End method for query builder
-    public function get($config = [])
-    {
-        (!isset($config['sort']))       ? $config['sort']       = 'DESC' : null;
-        (!isset($config['fetchStyle'])) ? $config['fetchStyle'] = 'assoc': null;
-
-        // Build query
-        $this->_sql = $this->_action . $this->_table . $this->_where . $this->_limit;
-        // Run query
-        $this->query($this->_sql, $this->_values);
-        // Return results
-        return $this->results($config['fetchStyle']);
-    }
-
-    // Delete helper TODO
-    public function delete($table, $where) {
-        return $this->action('DELETE', $table)->where($where)->run()->count();
+   /**
+    *  delete()
+    *  Query shortcut
+    *  $table, $whereConditions ([$column, $operator, $value])
+    *
+    */
+    public function delete($table, $whereConditions) {
+        if (!$this->whereIsValid($whereConditions)) die("Database: Query failed.");
+        $this->query("DELETE FROM {$table} WHERE {$whereConditions[0]} {$whereConditions[1]} {$whereConditions[2]}");
+        return !$this->_queryFailed;
     }
 }
