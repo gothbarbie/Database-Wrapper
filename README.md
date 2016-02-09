@@ -47,7 +47,7 @@ $db->insert('users', ['username' => 'user', 'email' => 'user@email.com']);
 ```
 
 ### UPDATE ###
-*UPDATE users SET username = user2, email = user2@email.com WHERE username = user*
+*UPDATE users SET username = "user2", email = "user2@email.com" WHERE username = "user"*
 ```php
 require_once 'Database.php';
 $db = new Gothbarbie\Database\Database();
@@ -56,7 +56,7 @@ $db->update('users', ['username' => 'user2', 'email' => 'user2@email.com'], ['us
 ```
 
 ### DELETE ###
-*DELETE FROM users WHERE username = user2*
+*DELETE FROM users WHERE username = "user2"*
 ```php
 require_once 'Database.php';
 $db = new Gothbarbie\Database\Database();
