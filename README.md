@@ -11,6 +11,7 @@ simplify common database queries.
 ## Usage ##
 
 ### SELECT ###
+*SELECT * FROM users WHERE id > 0*
 ```php
 require_once 'Database.php';
 $db = new Gothbarbie\Database\Database();
