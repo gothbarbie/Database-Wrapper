@@ -18,7 +18,7 @@ class Database {
     {
         self::$_credentials = [
             'host'     => 'localhost',
-            'database'   => 'database',
+            'database' => 'database',
             'username' => 'root',
             'password' => 'root'
         ];
