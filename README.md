@@ -20,6 +20,7 @@ $results = $db->select('*', 'users', ['id', '>', '0']);
 ```
 
 ### SELECT LIMIT (by 5)###
+*SELECT * FROM users WHERE id > 0 LIMIT 5*
 ```php
 require_once 'Database.php';
 $db = new Gothbarbie\Database\Database();
@@ -28,6 +29,7 @@ $results = $db->select('*', 'users', ['id', '>', '0'], 5);
 ```
 
 ### SELECT LATEST ###
+*SELECT * FROM users WHERE id = (SELECT MAX(id) FROM users)*
 ```php
 require_once 'Database.php';
 $db = new Gothbarbie\Database\Database();
@@ -36,6 +38,7 @@ $results = $db->latest('users');
 ```
 
 ### INSERT ###
+*INSERT INTO users (username, email) VALUES ("user", "user@email.com")*
 ```php
 require_once 'Database.php';
 $db = new Gothbarbie\Database\Database();
@@ -44,6 +47,7 @@ $db->insert('users', ['username' => 'user', 'email' => 'user@email.com']);
 ```
 
 ### UPDATE ###
+*UPDATE users SET username = user2, email = user2@email.com WHERE username = user*
 ```php
 require_once 'Database.php';
 $db = new Gothbarbie\Database\Database();
@@ -52,6 +56,7 @@ $db->update('users', ['username' => 'user2', 'email' => 'user2@email.com'], ['us
 ```
 
 ### DELETE ###
+*DELETE FROM users WHERE username = user2*
 ```php
 require_once 'Database.php';
 $db = new Gothbarbie\Database\Database();
