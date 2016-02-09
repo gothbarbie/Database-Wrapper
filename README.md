@@ -3,7 +3,7 @@ Database Wrapper
 This class handles connection to the database and can be used (by Models for example) to
 simplify common database queries.
 
-* Version: 0.1.0
+* Version: 0.2.0
 * URI: https://github.com/gothbarbie/database-wrapper
 * Author: Hanna Söderström
 * E-mail: info@hannasoderstrom.com
@@ -74,6 +74,7 @@ Tutorial can be found (and highly recommended!) on [YouTube](https://www.youtube
 *  query()       - Lets you run any database query
 *  results()     - Returns result of last SELECT query
 *  count()       - Returns number of affected rows from last query
+*
 *  select()      - Shortcut to SELECT from table
 *  insert()      - Shortcut to INSERT into table
 *  delete()      - Shortcut to DELETE from table
