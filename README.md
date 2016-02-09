@@ -19,7 +19,7 @@ $db->getInstance();
 $results = $db->select('*', 'users', ['id', '>', '0']);
 ```
 
-### SELECT LIMIT (by 5)###
+### SELECT (with LIMIT by 5)###
 *SELECT * FROM users WHERE id > 0 LIMIT 5*
 ```php
 require_once 'Database.php';
@@ -28,7 +28,7 @@ $db->getInstance();
 $results = $db->select('*', 'users', ['id', '>', '0'], 5);
 ```
 
-### SELECT LATEST ###
+### LATEST ###
 *SELECT * FROM users WHERE id = (SELECT MAX(id) FROM users)*
 ```php
 require_once 'Database.php';
