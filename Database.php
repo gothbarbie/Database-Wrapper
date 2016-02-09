@@ -9,16 +9,16 @@ class Database {
     private $_connection;
     private $_query;
 
-    private $_queryFailed = false;
+    private $_queryFailed  = false;
     private $_results;
-    private $_count = 0;
+    private $_count        = 0;
     private $_charEncoding = 'utf8';
 
     public function __construct()
     {
         self::$_credentials = [
             'host'     => 'localhost',
-            'database'   => 'studioKpi',
+            'database'   => 'database',
             'username' => 'root',
             'password' => 'root'
         ];
@@ -46,6 +46,8 @@ class Database {
    /**
     *  whereIsValid()
     *  Validates operators in select-query
+    *  @param array $where
+    *  @return bool
     */
     private function whereIsValid($where)
     {
@@ -94,6 +96,7 @@ class Database {
    /**
     *  results()
     *  Fetches result from last ran query
+    *  @return array
     */
     public function results($fetchStyle = false)
     {
@@ -121,6 +124,7 @@ class Database {
    /**
     *  count()
     *  Getter for $this->_count
+    *  @return int
     */
     public function count()
     {
@@ -130,8 +134,10 @@ class Database {
    /**
     *  select()
     *  Query building helper
-    *  $selector, $table, $whereConditions ([$column, $operator, $value])
-    *
+    *  @param string $selector
+    *  @param string $table
+    *  @param array  $whereConditions
+    *  @return array
     */
     public function select($selector, $table, $whereConditions = false, $limit = false)
     {
@@ -150,9 +156,11 @@ class Database {
     }
 
    /**
-    *    latest()
-    *    Query shortcut
-    *    Get the last row from selected table (by ID)
+    *  latest()
+    *  Query shortcut
+    *  Get the last row from selected table (by ID)
+    *  @param string @table
+    *  @return array
     */
     public function latest($table)
     {
@@ -160,9 +168,12 @@ class Database {
     }
 
    /**
-    *    insert()
-    *    Query shortcut
-    *    Insert record into table
+    *  insert()
+    *  Query shortcut
+    *  Insert record into table
+    *  @param string $table
+    *  @param array  $fieldsAndValues
+    *  @return bool
     */
     public function insert($table, $fieldsAndValues)
     {
@@ -187,8 +198,10 @@ class Database {
    /**
     *  update()
     *  Query shortcut
-    *  $table, $fieldsAndValues, $whereConditions ([$column, $operator, $value])
-    *
+    *  @param string $table
+    *  @param array  $fieldsAndValues
+    *  @param array  $whereConditions
+    *  @return bool
     */
     public function update($table, $fieldsAndValues, $whereConditions = false)
     {
@@ -217,7 +230,9 @@ class Database {
    /**
     *  delete()
     *  Query shortcut
-    *  $table, $whereConditions ([$column, $operator, $value])
+    *  @param string $table
+    *  @param array  $whereConditions
+    *  @return bool
     *
     */
     public function delete($table, $whereConditions) {
