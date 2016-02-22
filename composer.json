@@ -1,7 +1,15 @@
 {
-    "name" : "gothbarbie/database-wrapper",
+    "name" : "gothbarbie/Database-Wrapper",
     "description" : "A PHP wrapper-class that simplifies querying",
     "version" : "0.2.0",
     "keywords" : ["database", "wrapper", "pdo", "php", "queriying"],
-    "license" : "MIT"
+    "require": {
+        "php": "^5.6"
+    },
+    "license" : "MIT",
+    "autoload": {
+        "psr-4": {
+            "Gothbarbie\\": "database-wrapper"
+        }
+    }
 }
